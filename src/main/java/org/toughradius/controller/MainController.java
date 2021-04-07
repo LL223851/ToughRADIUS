@@ -1,5 +1,8 @@
 package org.toughradius.controller;
 
+import com.google.code.kaptcha.impl.DefaultKaptcha;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,15 +20,20 @@ import org.toughradius.entity.Config;
 import org.toughradius.entity.MenuItem;
 import org.toughradius.entity.SessionUser;
 
+import javax.imageio.ImageIO;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Controller
+@Api(hidden = true)
 public class MainController implements Constant {
 
     @Autowired
@@ -37,7 +45,8 @@ public class MainController implements Constant {
     @Autowired
     private ConfigService configService;
 
-
+    @Autowired
+    DefaultKaptcha defaultKaptcha;
 
     /**
      * 构造界面菜单数据
@@ -97,17 +106,25 @@ public class MainController implements Constant {
 
     @PostMapping("/admin/login")
     @ResponseBody
-    public RestResult loginHandler(String username, String password, HttpSession session) {
+    public RestResult loginHandler(String username, String password, String verifyCode,HttpSession session) {
         try {
-            String sysUserName = configService.getStringValue(ConfigService.SYSTEM_MODULE,ConfigService.SYSTEM_USERNAME);
-            String sysUserPwd = configService.getStringValue(ConfigService.SYSTEM_MODULE,ConfigService.SYSTEM_USERPWD);
+            String sysUserName = configService.getStringValue(SYSTEM_MODULE,SYSTEM_USERNAME);
+            String sysUserPwd = configService.getStringValue(SYSTEM_MODULE,SYSTEM_USERPWD);
+            String vcode = (String) session.getAttribute(SESSION_VCODE_KEY);
+            if(ValidateUtil.isEmpty(verifyCode)){
+                return  new RestResult(1,"验证码不能为空");
+            }
+            if(!verifyCode.equals(vcode)){
+                return  new RestResult(1,"验证码不正确");
+            }
+
             if(ValidateUtil.isEmpty(sysUserName)){
                 sysUserName = "admin";
-                configService.updateConfig(new Config(ConfigService.SYSTEM_MODULE,ConfigService.SYSTEM_USERNAME,sysUserName,""));
+                configService.updateConfig(new Config(SYSTEM_MODULE,SYSTEM_USERNAME,sysUserName,""));
             }
             if(ValidateUtil.isEmpty(sysUserPwd)){
                 sysUserPwd = CoderUtil.md5Salt("root");
-                configService.updateConfig(new Config(ConfigService.SYSTEM_MODULE,ConfigService.SYSTEM_USERPWD,sysUserPwd,""));
+                configService.updateConfig(new Config(SYSTEM_MODULE,SYSTEM_USERPWD,sysUserPwd,""));
             }
 
             if(username.equals(sysUserName) && CoderUtil.md5Salt(password).equals(sysUserPwd)){
@@ -129,6 +146,35 @@ public class MainController implements Constant {
     public String LogoutHandler(HttpSession session) {
         session.invalidate();
         return "/static/login.html";
+    }
+
+
+    @GetMapping("/admin/verify-img.jpg")
+    public void defaultKaptcha(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse) throws Exception{
+        byte[] captchaChallengeAsJpeg = null;
+        ByteArrayOutputStream jpegOutputStream = new ByteArrayOutputStream();
+        try {
+            //生产验证码字符串并保存到session中
+            String createText = defaultKaptcha.createText();
+            httpServletRequest.getSession().setAttribute(SESSION_VCODE_KEY, createText);
+            //使用生产的验证码字符串返回一个BufferedImage对象并转为byte写入到byte数组中
+            BufferedImage challenge = defaultKaptcha.createImage(createText);
+            ImageIO.write(challenge, "jpg", jpegOutputStream);
+        } catch (IllegalArgumentException e) {
+            httpServletResponse.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        //定义response输出类型为image/jpeg类型，使用response输出流输出图片的byte数组
+        captchaChallengeAsJpeg = jpegOutputStream.toByteArray();
+        httpServletResponse.setHeader("Cache-Control", "no-store");
+        httpServletResponse.setHeader("Pragma", "no-cache");
+        httpServletResponse.setDateHeader("Expires", 0);
+        httpServletResponse.setContentType("image/jpeg");
+        ServletOutputStream responseOutputStream = httpServletResponse.getOutputStream();
+        responseOutputStream.write(captchaChallengeAsJpeg);
+        responseOutputStream.flush();
+        responseOutputStream.close();
     }
 
 

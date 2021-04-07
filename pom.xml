@@ -95,6 +95,11 @@
             <artifactId>mina-core</artifactId>
             <version>2.0.13</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.penggle</groupId>
+            <artifactId>kaptcha</artifactId>
+            <version>2.3.2</version>
+        </dependency>
         <!--socket-->
         <dependency>
             <groupId>org.apache.mina</groupId>
@@ -127,6 +132,21 @@
             <artifactId>gnu-crypto</artifactId>
             <version>2.0.1</version>
         </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt</artifactId>
+            <version>0.9.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger2</artifactId>
+            <version>2.7.0</version>
+        </dependency>
+        <dependency>
+            <groupId>io.springfox</groupId>
+            <artifactId>springfox-swagger-ui</artifactId>
+            <version>2.7.0</version>
+        </dependency>
     </dependencies>
 
     <build>
@@ -154,6 +174,16 @@
                     <compilerArguments>
                         <extdirs>${project.basedir}/lib</extdirs>
                     </compilerArguments>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <nonFilteredFileExtensions>
+                        <nonFilteredFileExtension>js</nonFilteredFileExtension>
+                        <nonFilteredFileExtension>css</nonFilteredFileExtension>
+                    </nonFilteredFileExtensions>
                 </configuration>
             </plugin>
         </plugins>

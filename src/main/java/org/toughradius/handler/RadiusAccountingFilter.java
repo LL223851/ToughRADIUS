@@ -97,13 +97,14 @@ public class RadiusAccountingFilter {
         }
 
         RadiusOnline online = new RadiusOnline();
+        online.setRadsec(request.isRadsec());
 //        online.setId(CoderUtil.randomLongId());
         online.setNodeId(user.getNodeId());
         online.setRealname(user.getRealname());
         online.setUsername(request.getUserName());
         online.setNasId(request.getIdentifier());
         online.setNasAddr(nas.getIpaddr());
-        online.setNasPaddr(request.getRemoteAddr().getHostName());
+        online.setNasPaddr(request.getRemoteAddr().getAddress().getHostAddress());
         online.setSessionTimeout(request.getSessionTimeout());
         online.setFramedIpaddr(request.getFramedIpaddr());
         online.setFramedNetmask(request.getFramedNetmask());

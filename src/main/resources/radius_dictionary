@@ -364,3 +364,11 @@ VENDORATTR      10055	RP-Downstream-Speed-Limit		2	integer
 VENDORATTR      10055	RP-HURL					3	string
 VENDORATTR      10055	RP-MOTM					4	string
 VENDORATTR      10055	RP-Max-Sessions-Per-User		5	integer
+
+
+VENDOR          18168   ToughProxy
+
+VENDORATTR      18168	ToughProxy-Up-Limit			1	integer
+VENDORATTR      18168	ToughProxy-Down-Limit		2	integer
+VENDORATTR      18168	ToughProxy-Max-Session		3	integer
+VENDORATTR      18168	ToughProxy-Max-Client		4	integer

@@ -1,7 +1,9 @@
 package org.toughradius.config;
+import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 import org.toughradius.common.DefaultThreadFactory;
 import org.toughradius.common.ValidateCache;
 import org.toughradius.handler.RadiusAcctHandler;
+import org.toughradius.handler.RadiusAuthHandler;
 import org.toughradius.handler.RadiusBasicHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -13,6 +15,7 @@ import org.apache.mina.transport.socket.nio.NioDatagramAcceptor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.toughradius.handler.RadsecHandler;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -24,7 +27,7 @@ import java.util.concurrent.TimeUnit;
 @ConfigurationProperties(prefix = "org.toughradius")
 public class RadiusConfig {
 
-    private Log logger = LogFactory.getLog(RadiusConfig.class);
+    private final Log logger = LogFactory.getLog(RadiusConfig.class);
 
     private int authport;
     private int acctport;
@@ -39,6 +42,7 @@ public class RadiusConfig {
     private int ticketExpireDays;
     private int authPool;
     private int acctPool;
+    private long macAuthExpire;
     private String statfile;
 
     /**
@@ -48,7 +52,7 @@ public class RadiusConfig {
      * @throws IOException
      */
     @Bean( destroyMethod = "unbind")
-    public NioDatagramAcceptor nioAuthAcceptor(RadiusBasicHandler radiusAuthHandler) throws IOException {
+    public NioDatagramAcceptor nioAuthAcceptor(RadiusAuthHandler radiusAuthHandler) throws IOException {
         if(!authEnabled){
             logger.info("====== RadiusAuthServer not running =======");
             return null;
@@ -107,7 +111,6 @@ public class RadiusConfig {
         logger.info(String.format("====== RadiusAcctServer listen %s ======", acctport));
         return nioAcctAcceptor;
     }
-
 
     public int getAuthport() {
         return authport;
@@ -224,4 +227,13 @@ public class RadiusConfig {
     public void setAcctEnabled(boolean acctEnabled) {
         this.acctEnabled = acctEnabled;
     }
+
+    public long getMacAuthExpire() {
+        return macAuthExpire;
+    }
+
+    public void setMacAuthExpire(long macAuthExpire) {
+        this.macAuthExpire = macAuthExpire;
+    }
 }
+
